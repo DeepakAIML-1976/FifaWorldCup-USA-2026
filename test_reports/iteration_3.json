@@ -1,0 +1,47 @@
+{
+  "summary": "Iteration 3 validation of the two pre-deploy changes: (1) Predictions lock 1 HOUR before kickoff and (2) Leaderboard is real-time with only real users. Added 4 new lock-rule edge tests (2h ahead -> accepted; 30min ahead -> rejected; 59min ahead -> rejected; past -> rejected) using deterministic temporary mutation of match #103's kickoff. Added a Leaderboard cleanliness test (snapshot at session start) verifying exactly 2 real users (Admin + ManchesterUnited76) and no TEST_/Scorer/Aw/Dup/Reg User residue. All 36 backend pytest tests PASS (100%). UI verified: /leaderboard shows 'Standings · Live', green pulsing dot, 'Auto-refresh every 15s', and request listener observed 4 GET /api/leaderboard calls in 32s (initial + 2 polling ticks at ~15s intervals). /fixtures correctly renders 'Locked' badge with padlock and hides Predict button for any match whose kickoff-1h has already passed (visually confirmed on Match #2 which kicked off at 00:00 UTC, and on the dynamically-mutated 30-min-away scratch match). DB returned to pristine state after run (2 users, 0 predictions, 0 awards, match #50/#103/#104 results & times restored).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "submit_prediction (server.py:265) silently swallows ValueError/KeyError when parsing match['time'] - if a future bad data row sneaks in, the predict endpoint will happily save with NO lock check. Recommend logging and returning 500 rather than 'pass'.",
+    "Fixtures.jsx parses kickoff with new Date(m.time) where m.time is 'YYYY-MM-DD HH:MM:SS' (no 'Z' suffix). Safari/iOS treats this as LOCAL time while Chrome treats it as invalid or local. This means lockAt comparison may be off by the user's timezone offset (e.g., a user in UTC+5:30 might see a match unlocked when the backend has locked it, or vice versa). The backend parses via datetime.fromisoformat then forces tzinfo=UTC, so server & client interpret the same string differently. Recommend the API serve ISO-8601 with explicit 'Z' (e.g., '2026-06-11T15:00:00Z') and the frontend parse accordingly.",
+    "Leaderboard.jsx polling has no document.visibilityState guard - it keeps making requests in background tabs. Minor; consider pausing the interval when document.hidden === true."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin: admin@worldcup.com / Admin@2026. Did NOT create any new persistent test users - all TEST_ users created during the run are cleaned by the session-scope teardown fixture. Verified post-run state: 2 users, 0 predictions, 0 awards.",
+  "seed_data_creation": "None. The new tests temporarily mutate match #103's 'time' field for the lock-rule edge cases and an autouse class fixture restores the original time after each test. TestAdminScoring still uses match #50 (cleared back to scheduled in teardown). DB is left exactly as found.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Server clock ~2026-06-11 ~04:55 UTC. Match #1 (Jun 11 15:00 UTC) is still ~10h away. Match #2 (Jun 11 00:00 UTC) is in the past -> useful for negative lock tests. Use match #103 as the scratch match for time mutation tests (autouse fixture restores time). Match #50 was scored 2-1 by the scoring math test but reset to scheduled in teardown. backend_test.py now has 36 pytests including TestPredictionLockRule (4 new tests) and TestLeaderboardCleanliness (2 new tests). The session-autouse _cleanup_test_data fixture snapshots the leaderboard at session start (so cleanliness tests are independent of test-ordering) and wipes all email regex ^test_ users + their predictions/awards at session end.",
+  "feature_verification_matrix": {
+    "Backend POST /predictions/{n} accepts when kickoff > 1h away": "PASS (TestPredictionLockRule.test_accepted_when_kickoff_more_than_1h_away, kickoff=now+2h05m)",
+    "Backend POST /predictions/{n} rejects (400) when kickoff <= 1h away": "PASS (test_rejected_when_kickoff_within_1h at +30min and test_rejected_exactly_at_lock_boundary at +59min)",
+    "Backend POST /predictions/{n} rejects when kickoff already past": "PASS (test_rejected_when_kickoff_already_past and existing test_prediction_locked_for_started_match on match #2)",
+    "Error detail contains '1 hour'/'lock'": "PASS - asserted on response detail string",
+    "GET /api/leaderboard returns only real users (exactly 2)": "PASS - snapshot at session start matched exactly [Admin, ManchesterUnited76]",
+    "Leaderboard rows have no _id field": "PASS",
+    "/leaderboard UI shows 'Standings · Live' + green pulse dot + 'Auto-refresh every 15s' text": "PASS",
+    "/leaderboard UI auto-refreshes every 15s": "PASS - observed 4 /api/leaderboard requests in 32s (initial t=0, +15s, +30s)",
+    "/fixtures locked match shows padlock + Locked badge, no Predict button": "PASS - Match #2 (past) and Match #103 (set to now+30m) both rendered LOCKED",
+    "/fixtures unlocked match shows Predict button": "PASS - Match #1 (10h away) showed PREDICT",
+    "Backend regression: auth/register/login/me/logout": "PASS (6/6)",
+    "Backend regression: matches/teams/stadiums": "PASS (10/10)",
+    "Backend regression: predictions CRUD + auth + 404": "PASS (5/5)",
+    "Backend regression: awards": "PASS (2/2)",
+    "Backend regression: admin scoring math 2-1 (+5 / +3 / 0)": "PASS - bulk_write path still works on match #50 (>1h away)",
+    "Backend regression: admin award winners (+2 each = +8)": "PASS",
+    "Total pytest result": "36 passed in 7.63s"
+  }
+}

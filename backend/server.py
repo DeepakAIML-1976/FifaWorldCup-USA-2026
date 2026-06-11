@@ -253,13 +253,15 @@ async def submit_prediction(match_no: int, payload: MatchPredictionIn, request: 
     match = await db.matches.find_one({"match_no": match_no})
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
-    # lock if kickoff passed
+    # lock if within 1 hour of kickoff
     try:
         kickoff = datetime.fromisoformat(match["time"])
         if kickoff.tzinfo is None:
             kickoff = kickoff.replace(tzinfo=timezone.utc)
-        if datetime.now(timezone.utc) >= kickoff:
-            raise HTTPException(status_code=400, detail="Match already started; predictions locked")
+        from datetime import timedelta
+        lock_at = kickoff - timedelta(hours=1)
+        if datetime.now(timezone.utc) >= lock_at:
+            raise HTTPException(status_code=400, detail="Predictions lock 1 hour before kickoff")
     except (ValueError, KeyError):
         pass
     doc = {

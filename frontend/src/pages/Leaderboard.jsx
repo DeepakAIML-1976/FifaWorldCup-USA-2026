@@ -10,11 +10,18 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     setLoading(true);
-    api.get("/leaderboard", { params: { scope } }).then((r) => {
-      setRows(r.data);
-      setLoading(false);
-    });
+    const fetchRows = () => {
+      api.get("/leaderboard", { params: { scope } }).then((r) => {
+        if (!mounted) return;
+        setRows(r.data);
+        setLoading(false);
+      }).catch(() => mounted && setLoading(false));
+    };
+    fetchRows();
+    const id = setInterval(fetchRows, 15000); // real-time poll every 15s
+    return () => { mounted = false; clearInterval(id); };
   }, [scope]);
 
   const myIdx = user ? rows.findIndex((r) => r.id === user.id) : -1;
@@ -23,8 +30,12 @@ export default function Leaderboard() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-[11px] uppercase tracking-[0.35em] text-[#007AFF] font-bold">Standings</div>
+        <div className="text-[11px] uppercase tracking-[0.35em] text-[#007AFF] font-bold">Standings · Live</div>
         <h1 className="font-heading text-5xl mt-2">GLOBAL LEADERBOARD</h1>
+        <p className="text-xs uppercase tracking-[0.25em] text-white/40 mt-2">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#34C759] animate-pulse mr-2" />
+          Auto-refresh every 15s
+        </p>
 
         {user && myRank && (
           <div className="mt-6 border border-[#007AFF]/40 bg-[#007AFF]/10 px-5 py-4 flex flex-wrap items-center justify-between gap-3" data-testid="my-rank-banner">

@@ -100,7 +100,8 @@ function MatchCard({ m, teams, pred, authed, onSaved }) {
   const [msg, setMsg] = useState("");
 
   const kickoff = m.time ? new Date(m.time) : null;
-  const locked = kickoff && kickoff.getTime() <= Date.now();
+  const lockAt = kickoff ? new Date(kickoff.getTime() - 60 * 60 * 1000) : null;
+  const locked = lockAt && lockAt.getTime() <= Date.now();
   const hT = teams[m.home];
   const aT = teams[m.away];
 
