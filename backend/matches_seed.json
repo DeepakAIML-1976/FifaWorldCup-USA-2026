@@ -13,7 +13,7 @@
   {
     "match_no": 2,
     "group": "A",
-    "time": "2026-06-12T04:00:00Z",
+    "time": "2026-06-11T04:00:00Z",
     "home": "Korea Republic",
     "away": "Czechia",
     "stadium": "Estadio Akron",
@@ -57,7 +57,7 @@
   {
     "match_no": 6,
     "group": "D",
-    "time": "2026-06-15T04:00:00Z",
+    "time": "2026-06-14T04:00:00Z",
     "home": "Australia",
     "away": "T\u00fcrkiye",
     "stadium": "BC Place",
@@ -211,7 +211,7 @@
   {
     "match_no": 20,
     "group": "J",
-    "time": "2026-06-17T04:00:00Z",
+    "time": "2026-06-16T04:00:00Z",
     "home": "Austria",
     "away": "Jordan",
     "stadium": "Levi\u2019s Stadium",
@@ -332,7 +332,7 @@
   {
     "match_no": 31,
     "group": "D",
-    "time": "2026-06-20T04:00:00Z",
+    "time": "2026-06-19T04:00:00Z",
     "home": "T\u00fcrkiye",
     "away": "Paraguay",
     "stadium": "Levi\u2019s Stadium",
@@ -387,7 +387,7 @@
   {
     "match_no": 36,
     "group": "F",
-    "time": "2026-06-21T04:00:00Z",
+    "time": "2026-06-20T04:00:00Z",
     "home": "Tunisia",
     "away": "Japan",
     "stadium": "Estadio BBVA",
