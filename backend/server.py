@@ -253,16 +253,27 @@ async def submit_prediction(match_no: int, payload: MatchPredictionIn, request: 
     match = await db.matches.find_one({"match_no": match_no})
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
-    # lock if within 1 hour of kickoff (skip TBA matches)
+    # Lock 1 hour before kickoff. Lock check is anchored to IST (Asia/Kolkata)
+    # since the audience is India. The instant is timezone-independent, but
+    # expressing it in IST makes the intent explicit.
     if not match.get("tba"):
         try:
-            kickoff = datetime.fromisoformat(match["time"].replace("Z", "+00:00"))
-            if kickoff.tzinfo is None:
-                kickoff = kickoff.replace(tzinfo=timezone.utc)
             from datetime import timedelta
-            lock_at = kickoff - timedelta(hours=1)
-            if datetime.now(timezone.utc) >= lock_at:
-                raise HTTPException(status_code=400, detail="Predictions lock 1 hour before kickoff")
+            from zoneinfo import ZoneInfo
+            IST = ZoneInfo("Asia/Kolkata")
+            kickoff_utc = datetime.fromisoformat(match["time"].replace("Z", "+00:00"))
+            if kickoff_utc.tzinfo is None:
+                kickoff_utc = kickoff_utc.replace(tzinfo=timezone.utc)
+            kickoff_ist = kickoff_utc.astimezone(IST)
+            lock_at_ist = kickoff_ist - timedelta(hours=1)
+            now_ist = datetime.now(IST)
+            if now_ist >= lock_at_ist:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Predictions lock 1 hour before kickoff (locked at {lock_at_ist.strftime('%a %d %b %Y · %I:%M %p IST')})",
+                )
+        except HTTPException:
+            raise
         except (ValueError, KeyError):
             pass
     doc = {
