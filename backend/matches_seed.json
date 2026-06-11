@@ -13,13 +13,13 @@
   {
     "match_no": 2,
     "group": "A",
-    "time": "2026-06-11T04:00:00Z",
+    "time": "2026-06-12T04:00:00Z",
     "home": "Korea Republic",
     "away": "Czechia",
     "stadium": "Estadio Akron",
     "city": "Guadalajara",
     "stage": "Group Stage",
-    "tba": true
+    "tba": false
   },
   {
     "match_no": 3,
@@ -57,13 +57,13 @@
   {
     "match_no": 6,
     "group": "D",
-    "time": "2026-06-14T04:00:00Z",
+    "time": "2026-06-15T04:00:00Z",
     "home": "Australia",
     "away": "T\u00fcrkiye",
     "stadium": "BC Place",
     "city": "Vancouver",
     "stage": "Group Stage",
-    "tba": true
+    "tba": false
   },
   {
     "match_no": 7,
@@ -211,13 +211,13 @@
   {
     "match_no": 20,
     "group": "J",
-    "time": "2026-06-16T04:00:00Z",
+    "time": "2026-06-17T04:00:00Z",
     "home": "Austria",
     "away": "Jordan",
     "stadium": "Levi\u2019s Stadium",
     "city": "San Francisco",
     "stage": "Group Stage",
-    "tba": true
+    "tba": false
   },
   {
     "match_no": 21,
@@ -332,13 +332,13 @@
   {
     "match_no": 31,
     "group": "D",
-    "time": "2026-06-19T04:00:00Z",
+    "time": "2026-06-20T04:00:00Z",
     "home": "T\u00fcrkiye",
     "away": "Paraguay",
     "stadium": "Levi\u2019s Stadium",
     "city": "San Francisco",
     "stage": "Group Stage",
-    "tba": true
+    "tba": false
   },
   {
     "match_no": 32,
@@ -387,13 +387,13 @@
   {
     "match_no": 36,
     "group": "F",
-    "time": "2026-06-20T04:00:00Z",
+    "time": "2026-06-21T04:00:00Z",
     "home": "Tunisia",
     "away": "Japan",
     "stadium": "Estadio BBVA",
     "city": "Monterrey",
     "stage": "Group Stage",
-    "tba": true
+    "tba": false
   },
   {
     "match_no": 37,
