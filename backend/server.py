@@ -422,19 +422,40 @@ async def admin_set_result(match_no: int, payload: MatchResultIn, request: Reque
     }
     await db.matches.update_one({"match_no": match_no}, {"$set": {"result": result, "status": "finished"}})
     # score predictions
-    preds = await db.predictions.find({"match_no": match_no}).to_list(10000)
+    preds = await db.predictions.find({"match_no": match_no}).to_list(100000)
+    if not preds:
+        return {"ok": True, "scored_predictions": 0}
+
+    from pymongo import UpdateOne
+    # 1) Bulk update predictions
+    pred_ops = []
+    user_ids = set()
     for p in preds:
         pts = calc_points(p, result)
-        await db.predictions.update_one({"_id": p["_id"]}, {"$set": {"points": pts, "scored": True}})
-        # recompute user total
-        agg = await db.predictions.aggregate([
-            {"$match": {"user_id": p["user_id"], "scored": True}},
-            {"$group": {"_id": None, "total": {"$sum": "$points"}}},
-        ]).to_list(1)
-        match_total = agg[0]["total"] if agg else 0
-        # add awards points
-        award_pts = (await db.award_predictions.find_one({"user_id": p["user_id"]}) or {}).get("points", 0)
-        await db.users.update_one({"id": p["user_id"]}, {"$set": {"total_points": match_total + award_pts}})
+        pred_ops.append(UpdateOne({"_id": p["_id"]}, {"$set": {"points": pts, "scored": True}}))
+        user_ids.add(p["user_id"])
+    if pred_ops:
+        await db.predictions.bulk_write(pred_ops, ordered=False)
+
+    user_ids = list(user_ids)
+    # 2) Single aggregation: total scored match points per affected user
+    totals = await db.predictions.aggregate([
+        {"$match": {"user_id": {"$in": user_ids}, "scored": True}},
+        {"$group": {"_id": "$user_id", "total": {"$sum": "$points"}}},
+    ]).to_list(len(user_ids))
+    match_totals = {row["_id"]: row["total"] for row in totals}
+    # 3) One query for all award points
+    award_rows = await db.award_predictions.find(
+        {"user_id": {"$in": user_ids}}, {"_id": 0, "user_id": 1, "points": 1}
+    ).to_list(len(user_ids))
+    award_totals = {row["user_id"]: row.get("points", 0) for row in award_rows}
+    # 4) Bulk update users
+    user_ops = [
+        UpdateOne({"id": uid}, {"$set": {"total_points": match_totals.get(uid, 0) + award_totals.get(uid, 0)}})
+        for uid in user_ids
+    ]
+    if user_ops:
+        await db.users.bulk_write(user_ops, ordered=False)
     return {"ok": True, "scored_predictions": len(preds)}
 
 
@@ -448,21 +469,43 @@ async def admin_set_award_winners(payload: AwardWinnersIn, request: Request):
         upsert=True,
     )
     # score award predictions
-    preds = await db.award_predictions.find({}).to_list(10000)
+    preds = await db.award_predictions.find({}).to_list(100000)
+    if not preds:
+        return {"ok": True, "scored": 0}
+
     fields = ["golden_boot", "golden_glove", "player_of_tournament", "fair_play"]
     points_map = {"golden_boot": 2, "golden_glove": 2, "player_of_tournament": 2, "fair_play": 2}
+
+    from pymongo import UpdateOne
+    # 1) Compute & bulk-update award predictions
+    award_ops = []
+    user_award_pts = {}
+    user_ids = set()
     for p in preds:
         pts = 0
         for f in fields:
             if p.get(f) and winners.get(f) and p[f].strip().lower() == winners[f].strip().lower():
                 pts += points_map[f]
-        await db.award_predictions.update_one({"_id": p["_id"]}, {"$set": {"points": pts, "scored": True}})
-        match_agg = await db.predictions.aggregate([
-            {"$match": {"user_id": p["user_id"], "scored": True}},
-            {"$group": {"_id": None, "total": {"$sum": "$points"}}},
-        ]).to_list(1)
-        match_total = match_agg[0]["total"] if match_agg else 0
-        await db.users.update_one({"id": p["user_id"]}, {"$set": {"total_points": match_total + pts}})
+        award_ops.append(UpdateOne({"_id": p["_id"]}, {"$set": {"points": pts, "scored": True}}))
+        user_award_pts[p["user_id"]] = pts
+        user_ids.add(p["user_id"])
+    if award_ops:
+        await db.award_predictions.bulk_write(award_ops, ordered=False)
+
+    user_ids = list(user_ids)
+    # 2) Single aggregation of match totals
+    totals = await db.predictions.aggregate([
+        {"$match": {"user_id": {"$in": user_ids}, "scored": True}},
+        {"$group": {"_id": "$user_id", "total": {"$sum": "$points"}}},
+    ]).to_list(len(user_ids))
+    match_totals = {row["_id"]: row["total"] for row in totals}
+    # 3) Bulk update users
+    user_ops = [
+        UpdateOne({"id": uid}, {"$set": {"total_points": match_totals.get(uid, 0) + user_award_pts.get(uid, 0)}})
+        for uid in user_ids
+    ]
+    if user_ops:
+        await db.users.bulk_write(user_ops, ordered=False)
     return {"ok": True, "scored": len(preds)}
 
 
