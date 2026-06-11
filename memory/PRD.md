@@ -22,7 +22,7 @@ A modern, responsive, immersive football prediction platform for FIFA World Cup 
 - "View Squad" hyperlink to https://fdp.fifa.org/assetspublic/ce281/pdf/SquadLists-English.pdf on every match card AND the awards page.
 
 ## What's Been Implemented (Feb 2026)
-- [x] Auth: register, login, logout, /me, forgot-password (token returned for demo), reset-password
+- [x] Auth: register, login, logout, /me, forgot-password (token returned & shown in UI for demo), reset-password
 - [x] Admin seeded on startup (`admin@worldcup.com / Admin@2026`)
 - [x] 104 matches, 48 teams (with country flag CDN + FIFA ranks + coaches), 16 stadiums (with images + capacity) — all seeded
 - [x] Match predictions CRUD with kickoff lock
@@ -32,7 +32,10 @@ A modern, responsive, immersive football prediction platform for FIFA World Cup 
 - [x] Leaderboard with accuracy %, predictions made, flags
 - [x] All frontend pages with dark stadium theme, asymmetric heroes, Bebas Neue display headings
 - [x] data-testid coverage on key interactive elements
-- [x] 100% backend + frontend test coverage (pytest 30 tests + Playwright flows)
+- [x] **Iter 2**: Forgot/Reset password pages with token-in-UI flow
+- [x] **Iter 2**: Admin one-click inline scoring table — score+MOTM inputs always visible, instant scoring + leaderboard update
+- [x] **Iter 2**: Social share buttons (Twitter, Facebook, Instagram copy, Copy link) on Profile rank, Leaderboard "my rank" banner, and each match prediction
+- [x] 100% backend + frontend test coverage (pytest 30 tests + Playwright flows) across 2 iterations
 
 ## Backlog (deferred / next phases)
 ### P1
