@@ -357,22 +357,47 @@ async def get_stadium(name: str):
 # ============ Leaderboard ============
 @api.get("/leaderboard")
 async def leaderboard(scope: Literal["global", "country", "weekly"] = "global", country: Optional[str] = None):
-    pipeline = []
+    match_q = {}
     if scope == "country" and country:
-        pipeline.append({"$match": {"country_code": country.upper()}})
+        match_q["country_code"] = country.upper()
+    pipeline = []
+    if match_q:
+        pipeline.append({"$match": match_q})
     pipeline += [
         {"$sort": {"total_points": -1, "name": 1}},
         {"$limit": 100},
-        {"$project": {"_id": 0, "id": 1, "name": 1, "country": 1, "country_code": 1, "total_points": 1, "avatar_url": 1}},
+        {"$lookup": {
+            "from": "predictions",
+            "let": {"uid": "$id"},
+            "pipeline": [
+                {"$match": {"$expr": {"$eq": ["$user_id", "$$uid"]}}},
+                {"$group": {
+                    "_id": None,
+                    "total": {"$sum": 1},
+                    "scored": {"$sum": {"$cond": ["$scored", 1, 0]}},
+                    "correct": {"$sum": {"$cond": [{"$and": ["$scored", {"$gt": ["$points", 0]}]}, 1, 0]}},
+                }},
+            ],
+            "as": "pred_stats",
+        }},
+        {"$addFields": {
+            "predictions_made": {"$ifNull": [{"$arrayElemAt": ["$pred_stats.total", 0]}, 0]},
+            "scored_count": {"$ifNull": [{"$arrayElemAt": ["$pred_stats.scored", 0]}, 0]},
+            "correct_count": {"$ifNull": [{"$arrayElemAt": ["$pred_stats.correct", 0]}, 0]},
+        }},
+        {"$addFields": {
+            "accuracy": {"$cond": [
+                {"$gt": ["$scored_count", 0]},
+                {"$round": [{"$multiply": [{"$divide": ["$correct_count", "$scored_count"]}, 100]}, 1]},
+                0.0,
+            ]},
+        }},
+        {"$project": {
+            "_id": 0, "id": 1, "name": 1, "country": 1, "country_code": 1,
+            "total_points": 1, "avatar_url": 1, "predictions_made": 1, "accuracy": 1,
+        }},
     ]
-    users = await db.users.aggregate(pipeline).to_list(100)
-    # compute accuracy
-    for u in users:
-        total_preds = await db.predictions.count_documents({"user_id": u["id"], "scored": True})
-        correct = await db.predictions.count_documents({"user_id": u["id"], "scored": True, "points": {"$gt": 0}})
-        u["accuracy"] = round((correct / total_preds * 100), 1) if total_preds else 0.0
-        u["predictions_made"] = await db.predictions.count_documents({"user_id": u["id"]})
-    return users
+    return await db.users.aggregate(pipeline).to_list(100)
 
 
 # ============ Admin ============
