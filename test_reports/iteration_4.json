@@ -1,0 +1,31 @@
+{
+  "summary": "Iteration 4 validation of the ET timezone migration. All 104 match times in /api/matches verified ISO-8601 with trailing 'Z' (zero non-Z values). Match #1 (Mexico vs South Africa) = 2026-06-11T19:00:00Z (15:00 ET). Match #104 (Final) = 2026-07-19T19:00:00Z (15:00 ET). Backend datetime.fromisoformat correctly parses 'Z' on Python 3.11.15 (no replacement needed). Lock-1h rule still works with the new ISO-Z format - the lock-rule test mutator was updated to write ISO-Z strings (the format that now lives in the DB) and all 4 lock-rule edge tests still pass (accept >1h, reject <1h, reject at 59m boundary, reject in past). Backend regression: 39/39 pytest tests pass (was 36, added 3 ET migration tests). Leaderboard cleanliness verified - exactly 2 real users (Admin + ManchesterUnited76) at session start. Frontend /fixtures verified live: each card header shows 'JUN 11, 15:00 ET' and 'JUN 11, 07:00 PM LOCAL' (Match #1) and 'JUL 19, 15:00 ET' / 'JUL 19, 07:00 PM LOCAL' (Match #104 Final). The 'ET' label and 'local' line are both rendered as specified.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/fixtures Match #104 (Final) card header", "issues": ["Header reads 'MATCH #104 · FINAL · GROUP F' - a knockout-stage match should not display a 'Group' segment. This is a pre-existing data issue unrelated to the ET migration (match.group field is still populated for some knockout fixtures in matches_seed.json). Recommend stripping 'group' on knockout stages in Fixtures.jsx line 130 or null-out group on seed for knockout matches."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py submit_prediction (line 257-266) still silently swallows ValueError/KeyError - now that all 104 rows are guaranteed ISO-Z this catch-all is a latent footgun; if a corrupt row appears, predictions will save WITHOUT the lock check. Recommend log.exception + 500 instead of 'pass'.",
+    "Fixtures.jsx formatDateTime constructs Date(s) on ISO-Z strings (works cross-browser now - prior iteration 3 concern about Safari parsing naive 'YYYY-MM-DD HH:MM:SS' is RESOLVED). lockAt comparison is now correct across timezones. Nice fix.",
+    "Carry-over from iter 3: Leaderboard.jsx polling has no document.visibilityState guard. Minor."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin: admin@worldcup.com / Admin@2026. No persistent test users left behind - session teardown cleans all TEST_* users + their predictions/awards; match #50 reset to scheduled; match #103 time restored by autouse fixture.",
+  "seed_data_creation": "None permanent. matches_seed.json was already migrated by main agent prior to this iteration; tests only verify the migrated state.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 104 match.time values are ISO-8601 UTC with trailing 'Z'. Match #1 = 2026-06-11T19:00:00Z, Match #104 = 2026-07-19T19:00:00Z. Server clock when this iter ran: ~2026-06-11 05:35 UTC, so Match #1 is ~13.5h in the future (PREDICT button still shown), Match #2 (00:00Z) is in the past (LOCKED). backend_test.py now has 39 tests: 3 new tests in TestMatches verify all-ISO-Z, match #1 ET conversion, match #104 ET conversion. TestPredictionLockRule._set_match_time writes ISO-Z (was 'YYYY-MM-DD HH:MM:SS'). Python 3.11.15 in this env handles datetime.fromisoformat('...Z') natively - no replace('Z','+00:00') hack needed.",
+  "rca of the issue": "N/A - this iteration validates a fix, not a bug. Migration outcome: matches_seed.json successfully converted 104 naive timestamps (interpreted as UTC) to America/New_York-localized then converted to UTC ISO-Z. Match #1 kickoff at 15:00 ET on 2026-06-11 (during EDT, UTC-4) -> 19:00:00Z. Frontend Date(isoZ) parses unambiguously and toLocaleString('en-US', {timeZone:'America/New_York'}) returns the canonical ET string. End-to-end consistent."
+}

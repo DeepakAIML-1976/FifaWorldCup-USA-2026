@@ -12,8 +12,10 @@ function formatDateTime(s) {
   if (!s) return "TBA";
   try {
     const d = new Date(s);
-    return d.toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-  } catch { return s; }
+    const local = d.toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    const et = d.toLocaleString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+    return { local, et };
+  } catch { return { local: s, et: "" }; }
 }
 
 function TeamFlagCDN({ name }) {
@@ -126,7 +128,18 @@ function MatchCard({ m, teams, pred, authed, onSaved }) {
     <div data-testid={`match-card-${m.match_no}`} className="border border-white/10 bg-[#141414] hover:bg-[#1C1C1C] transition-colors">
       <div className="px-5 py-3 flex items-center justify-between border-b border-white/10 text-[10px] uppercase tracking-[0.25em] text-white/40">
         <span>Match #{m.match_no} · {m.stage}{m.group ? ` · Group ${m.group}` : ""}</span>
-        <span>{formatDateTime(m.time)}</span>
+        <span className="text-right">
+          {(() => {
+            const t = formatDateTime(m.time);
+            if (typeof t === "string") return t;
+            return (
+              <span className="flex flex-col items-end leading-tight">
+                <span className="text-white/60">{t.et} ET</span>
+                <span className="text-[9px] text-white/30">{t.local} local</span>
+              </span>
+            );
+          })()}
+        </span>
       </div>
       <div className="px-5 py-5">
         <div className="flex items-center justify-between gap-4">

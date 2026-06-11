@@ -186,6 +186,28 @@ class TestMatches:
         r = requests.get(f"{API}/matches/9999")
         assert r.status_code == 404
 
+    def test_all_match_times_are_iso8601_z(self):
+        """After ET migration, every match.time must be 'YYYY-MM-DDTHH:MM:SSZ'."""
+        data = requests.get(f"{API}/matches").json()
+        bad = [m["match_no"] for m in data if not (isinstance(m.get("time"), str) and m["time"].endswith("Z") and "T" in m["time"]) ]
+        assert bad == [], f"Matches with non-ISO-Z time: {bad[:10]}"
+        # Spot check: must parse via datetime.fromisoformat (Python 3.11+ supports trailing Z)
+        for m in data[:3]:
+            dt = datetime.fromisoformat(m["time"])
+            assert dt.tzinfo is not None, f"parsed time has no tz: {m['time']}"
+
+    def test_match1_kickoff_is_15et_in_utc(self):
+        r = requests.get(f"{API}/matches/1")
+        assert r.status_code == 200
+        # 15:00 America/New_York (EDT, UTC-4) on 2026-06-11 = 19:00Z
+        assert r.json()["time"] == "2026-06-11T19:00:00Z", r.json()["time"]
+
+    def test_match104_final_kickoff_is_15et_in_utc(self):
+        r = requests.get(f"{API}/matches/104")
+        assert r.status_code == 200
+        # 15:00 America/New_York (EDT, UTC-4) on 2026-07-19 = 19:00Z
+        assert r.json()["time"] == "2026-07-19T19:00:00Z", r.json()["time"]
+
 
 # ---------------- Teams ----------------
 class TestTeams:
@@ -297,8 +319,8 @@ class TestPredictionLockRule:
             )
 
     def _set_match_time(self, dt: datetime):
-        # Store the same string format the backend expects: "YYYY-MM-DD HH:MM:SS"
-        s = dt.strftime("%Y-%m-%d %H:%M:%S")
+        # Store as ISO-8601 with 'Z' suffix (new schema after ET migration)
+        s = dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         res = _DB.matches.update_one(
             {"match_no": self.SCRATCH_MATCH_NO}, {"$set": {"time": s}}
         )
