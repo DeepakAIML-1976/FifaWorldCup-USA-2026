@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import ShareButtons from "@/components/ShareButtons";
 
 export default function Leaderboard() {
+  const { user } = useAuth();
   const [rows, setRows] = useState([]);
   const [scope, setScope] = useState("global");
   const [loading, setLoading] = useState(true);
@@ -14,11 +17,27 @@ export default function Leaderboard() {
     });
   }, [scope]);
 
+  const myIdx = user ? rows.findIndex((r) => r.id === user.id) : -1;
+  const myRank = myIdx >= 0 ? myIdx + 1 : null;
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-[11px] uppercase tracking-[0.35em] text-[#007AFF] font-bold">Standings</div>
         <h1 className="font-heading text-5xl mt-2">GLOBAL LEADERBOARD</h1>
+
+        {user && myRank && (
+          <div className="mt-6 border border-[#007AFF]/40 bg-[#007AFF]/10 px-5 py-4 flex flex-wrap items-center justify-between gap-3" data-testid="my-rank-banner">
+            <div className="text-sm">
+              You are ranked <span className="font-heading text-2xl text-[#007AFF]">#{myRank}</span> globally with{" "}
+              <span className="font-mono text-[#34C759] font-bold">{rows[myIdx]?.total_points || 0} pts</span>
+            </div>
+            <ShareButtons
+              testIdPrefix="share-leaderboard"
+              text={`I'm ranked #${myRank} on the WC 2026 Predictor leaderboard with ${rows[myIdx]?.total_points || 0} points 🏆⚽`}
+            />
+          </div>
+        )}
 
         <div className="flex gap-2 mt-6 mb-6">
           {["global", "country", "weekly"].map((s) => (

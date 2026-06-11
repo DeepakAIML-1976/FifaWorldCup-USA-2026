@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import ShareButtons from "@/components/ShareButtons";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -8,21 +9,27 @@ export default function Profile() {
   const [matches, setMatches] = useState({});
   const [awards, setAwards] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [rank, setRank] = useState(null);
 
   useEffect(() => {
     (async () => {
-      const [p, m, a] = await Promise.all([
+      const [p, m, a, lb] = await Promise.all([
         api.get("/predictions/me"),
         api.get("/matches"),
         api.get("/awards/me"),
+        api.get("/leaderboard", { params: { scope: "global" } }),
       ]);
       setPreds(p.data);
       const mm = {}; m.data.forEach((x) => (mm[x.match_no] = x));
       setMatches(mm);
       setAwards(a.data);
+      if (user) {
+        const idx = lb.data.findIndex((u) => u.id === user.id);
+        setRank(idx >= 0 ? idx + 1 : null);
+      }
       setLoading(false);
     })();
-  }, []);
+  }, [user]);
 
   if (!user) return null;
   const totalPreds = preds.length;
@@ -47,8 +54,8 @@ export default function Profile() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-10">
           {[
             { l: "Total points", v: user.total_points || 0, c: "#34C759" },
+            { l: "Global rank", v: rank ? `#${rank}` : "—", c: "#FF9500" },
             { l: "Predictions", v: totalPreds, c: "#007AFF" },
-            { l: "Scored", v: scored, c: "#FF9500" },
             { l: "Accuracy", v: `${accuracy}%`, c: "#FFFFFF" },
           ].map((s) => (
             <div key={s.l} className="border border-white/10 bg-[#141414] p-5">
@@ -56,6 +63,23 @@ export default function Profile() {
               <div className="font-heading text-4xl mt-2" style={{ color: s.c }}>{s.v}</div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-6 border border-white/10 bg-[#141414] p-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.25em] text-white/40">Brag rights</div>
+            <div className="text-sm text-white/70 mt-1">
+              {rank ? `Ranked #${rank} globally with ${user.total_points || 0} points` : "Make your first prediction to enter the leaderboard"}
+            </div>
+          </div>
+          <ShareButtons
+            testIdPrefix="share-rank"
+            text={
+              rank
+                ? `I'm ranked #${rank} on the WC 2026 Predictor leaderboard with ${user.total_points || 0} points 🏆⚽ Think you can beat me?`
+                : `Just joined the WC 2026 Predictor — come challenge me! ⚽`
+            }
+          />
         </div>
 
         <div className="mt-10">

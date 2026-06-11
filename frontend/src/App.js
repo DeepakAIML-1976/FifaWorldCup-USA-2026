@@ -15,10 +15,12 @@ import Stadiums from "@/pages/Stadiums";
 import StadiumDetail from "@/pages/StadiumDetail";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 
 function Shell() {
   const { pathname } = useLocation();
-  const hideNav = pathname === "/login" || pathname === "/register";
+  const hideNav = ["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname);
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
       {!hideNav && <Navbar />}
@@ -36,6 +38,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/fixtures" element={<Fixtures />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/teams/:name" element={<TeamDetail />} />

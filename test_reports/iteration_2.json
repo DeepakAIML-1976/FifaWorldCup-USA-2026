@@ -1,0 +1,45 @@
+{
+  "summary": "Iteration 2 validation of new frontend features: forgot/reset password flow, admin one-click inline scoring table, social share buttons (Profile, Leaderboard, per-match), and Leaderboard 'my rank' banner. Backend regression (30 pytest tests) PASS 100%. All frontend feature checks PASS 100%. End-to-end reset-password flow verified (token issued -> /reset-password -> success -> /login -> new password works).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "/api/auth/forgot-password still returns reset_token in the JSON response (server.py:207). This is intentional for the demo build (used by ForgotPassword.jsx to display the token), but it must be removed before any production deployment - tokens should only be emailed.",
+    "ShareButtons FRONTEND_URL is computed once at module load using window.location.origin. This is fine for SPA navigation but means if the app is ever rendered SSR the URL will be empty. Consider computing inside the component on render.",
+    "Admin.jsx: the SCORE NOW button is disabled only when home/away are empty strings, but a user can enter a negative number through the keyboard despite min=0 (HTML5 min is advisory). Recommend clamping +row.home to >=0 in saveResult before posting, or rely on backend validation (backend currently doesn't validate non-negative). Low priority.",
+    "ResetPassword.jsx redirects to /login after 1800ms but does not log the user out of any active session - acceptable for this flow since users hitting reset-password are typically unauthenticated.",
+    "Leaderboard 'my-rank-banner' shows '#27 globally with 0 pts' for a user with no scored predictions yet. Confirms user is included in /api/leaderboard immediately on registration (correct behavior given they have a prediction)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin: admin@worldcup.com / Admin@2026 ; new TEST_ users created via /api/auth/register during run",
+  "seed_data_creation": "Each run creates a TEST_share_<hex>@worldcup.com user, makes a prediction on match #80, and rotates its password via reset flow. Admin scoring test scored match #100 (matches_finished: 1 -> 2).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Server clock around 2026-06-11. Match #1 (15:00 UTC) was already finished by a previous iteration; this iteration also scored match #100 so admin-stats.matches_finished is now 2/104. Use match_no >= 80 for new prediction tests (still unlocked) and avoid #100 for admin one-click tests since it's now finished (button will show 'Re-score'). The /api/auth/forgot-password endpoint returns reset_token in the JSON body intentionally (demo only). Backend tests are at /app/backend/tests/backend_test.py and all 30 pass.",
+  "feature_verification_matrix": {
+    "login-forgot-link": "PASS - href=/forgot-password",
+    "/forgot-password page": "PASS - form loads, valid email yields forgot-token-value (43 chars), forgot-copy works, forgot-continue link includes token",
+    "/reset-password?token=XYZ": "PASS - form loads with token prefilled, on success reset-success shown, redirect to /login within 1.8s",
+    "new password login": "PASS - user can log in with new password after reset",
+    "admin one-click table": "PASS - admin-home-100/admin-away-100/admin-motm-100/admin-score-100 all present; filled 2-1 Messi, clicked SCORE NOW, button transitioned to Scored N then to Re-score on refresh",
+    "admin-stats matches_finished increment": "PASS - 1 -> 2 after scoring match #100",
+    "award-winners-form + awards-saved-msg": "PASS - 'Saved & scored 8 award picks.' shown",
+    "pred-saved-{n} + share-match-{n}-row on save": "PASS - on match #80 both elements rendered after save",
+    "share-match-{n} twitter href": "PASS - contains twitter.com/intent/tweet, target=_blank, has text= and url= params",
+    "share-match-{n} facebook href": "PASS - contains facebook.com/sharer",
+    "share-match-{n} instagram click -> check icon": "PASS - inner HTML changed to include #34C759 check color",
+    "share-match-{n} copy link click -> check icon": "PASS",
+    "Profile share-rank-row": "PASS - share-rank-twitter href valid",
+    "Leaderboard my-rank-banner + share-leaderboard-row": "PASS - banner reads '#27 globally with 0 pts' for fresh user",
+    "Backend 30 pytest tests": "PASS - 100%"
+  }
+}

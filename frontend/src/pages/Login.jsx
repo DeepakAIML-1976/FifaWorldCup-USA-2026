@@ -85,10 +85,15 @@ export default function Login() {
             {loading ? "Signing in…" : "Log In"}
           </button>
 
-          <div className="text-sm text-white/50">
-            New here?{" "}
-            <Link to="/register" className="text-[#007AFF] hover:text-[#3395FF]" data-testid="login-register-link">
-              Create an account
+          <div className="flex items-center justify-between text-sm text-white/50">
+            <span>
+              New here?{" "}
+              <Link to="/register" className="text-[#007AFF] hover:text-[#3395FF]" data-testid="login-register-link">
+                Create an account
+              </Link>
+            </span>
+            <Link to="/forgot-password" className="text-white/60 hover:text-white" data-testid="login-forgot-link">
+              Forgot password?
             </Link>
           </div>
         </form>

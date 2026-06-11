@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import { ViewSquadLink } from "@/components/ViewSquadLink";
 import { Lock } from "lucide-react";
 import { Link } from "react-router-dom";
+import ShareButtons from "@/components/ShareButtons";
 
 const STAGES = ["All", "Group Stage", "Round of 32", "Round of 16", "Quarter Final", "Semi Final", "Third Place", "Final"];
 
@@ -148,8 +149,14 @@ function MatchCard({ m, teams, pred, authed, onSaved }) {
         </div>
 
         {pred && (
-          <div className="mt-3 text-xs text-[#007AFF]" data-testid={`pred-saved-${m.match_no}`}>
-            Your pick: {pred.home_score}–{pred.away_score}{pred.motm ? ` · MOTM: ${pred.motm}` : ""}
+          <div className="mt-3 flex items-center justify-between gap-3 flex-wrap" data-testid={`pred-saved-${m.match_no}`}>
+            <div className="text-xs text-[#007AFF]">
+              Your pick: {pred.home_score}–{pred.away_score}{pred.motm ? ` · MOTM: ${pred.motm}` : ""}
+            </div>
+            <ShareButtons
+              testIdPrefix={`share-match-${m.match_no}`}
+              text={`My WC 2026 prediction: ${m.home} ${pred.home_score}–${pred.away_score} ${m.away}${pred.motm ? ` · MOTM: ${pred.motm}` : ""}. Beat my call! ⚽`}
+            />
           </div>
         )}
 
