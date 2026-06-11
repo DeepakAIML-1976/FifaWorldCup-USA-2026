@@ -112,7 +112,7 @@ function MatchCard({ m, teams, pred, authed, onSaved }) {
 
   const kickoff = m.time ? new Date(m.time) : null;
   const lockAt = kickoff ? new Date(kickoff.getTime() - 60 * 60 * 1000) : null;
-  const locked = lockAt && lockAt.getTime() <= Date.now();
+  const locked = !m.tba && lockAt && lockAt.getTime() <= Date.now();
   const hT = teams[m.home];
   const aT = teams[m.away];
 
@@ -138,7 +138,9 @@ function MatchCard({ m, teams, pred, authed, onSaved }) {
       <div className="px-5 py-3 flex items-center justify-between border-b border-white/10 text-[10px] uppercase tracking-[0.25em] text-white/40">
         <span>Match #{m.match_no} · {m.stage}{m.group ? ` · Group ${m.group}` : ""}</span>
         <span className="text-right">
-          {(() => {
+          {m.tba ? (
+            <span className="text-[#FF9500]" data-testid={`tba-${m.match_no}`}>Kickoff TBA</span>
+          ) : (() => {
             const t = formatDateTime(m.time);
             if (typeof t === "string") return t;
             return (
@@ -197,9 +199,14 @@ function MatchCard({ m, teams, pred, authed, onSaved }) {
             <Lock className="h-3 w-3" /> Locked (kickoff &lt; 1h)
           </div>
         )}
-        {!locked && lockAt && (
+        {!locked && lockAt && !m.tba && (
           <div className="mt-3 text-[10px] uppercase tracking-[0.2em] text-white/30" data-testid={`lock-info-${m.match_no}`}>
             Locks {formatLockTime(m.time)} IST
+          </div>
+        )}
+        {m.tba && (
+          <div className="mt-3 text-[10px] uppercase tracking-[0.2em] text-[#FF9500]/70" data-testid={`tba-info-${m.match_no}`}>
+            Kickoff time to be announced
           </div>
         )}
 
