@@ -721,7 +721,7 @@
   },
   {
     "match_no": 73,
-    "group": "R32",
+    "group": null,
     "time": "2026-06-28T19:00:00Z",
     "home": "Group A Runner Up",
     "away": "Group B Runner Up",
@@ -881,7 +881,7 @@
   },
   {
     "match_no": 89,
-    "group": "R16",
+    "group": null,
     "time": "2026-07-04T21:00:00Z",
     "home": "Match 74 Winner",
     "away": "Match 77 Winner",
@@ -961,7 +961,7 @@
   },
   {
     "match_no": 97,
-    "group": "QF",
+    "group": null,
     "time": "2026-07-09T20:00:00Z",
     "home": "Match 89 Winner",
     "away": "Match 90 Winner",
@@ -1001,7 +1001,7 @@
   },
   {
     "match_no": 101,
-    "group": "SF",
+    "group": null,
     "time": "2026-07-14T19:00:00Z",
     "home": "Match 97 Winner",
     "away": "Match 98 Winner",
@@ -1021,7 +1021,7 @@
   },
   {
     "match_no": 103,
-    "group": "3rd",
+    "group": null,
     "time": "2026-07-18T19:00:00Z",
     "home": "Match 101 Loser",
     "away": "Match 102 Loser",
@@ -1031,7 +1031,7 @@
   },
   {
     "match_no": 104,
-    "group": "F",
+    "group": null,
     "time": "2026-07-19T19:00:00Z",
     "home": "Match 101 Winner",
     "away": "Match 102 Winner",
