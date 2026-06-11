@@ -1,0 +1,38 @@
+{
+  "summary": "Comprehensive backend (pytest 30 tests) + frontend (Playwright) testing of FIFA WC 2026 Predictor MVP. 100% backend pass rate. Frontend pages load, auth flow works, protected routes redirect, admin console functional, predictions UI uses click-to-expand pattern, awards form complete, View Squad links point to correct FIFA PDF URL. Scoring math verified end-to-end (2-1 -> +5, 1-0 -> +3, 0-2 -> 0; awards 4 correct -> +8). Note: server clock is at 2026-06-11 04:20 UTC so match #2 (kickoff 00:00 UTC) is correctly LOCKED; match #1 (15:00 UTC) is still open.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Fixtures", "issues": ["Each match card requires clicking a 'PREDICT' button to reveal score-home-{n}/score-away-{n}/motm-{n}/save-pred-{n} inputs - this is by design but the data-testid documentation should mention this. Locked matches (kickoff passed) correctly hide the PREDICT button and show LOCKED badge."]},
+      {"screen": "Admin Console", "issues": ["result-home/result-away/result-motm/result-submit selectors only render after clicking an admin-pick-{n} row in the match list. This is by design (expand-on-select pattern)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py is 558 lines - approaching the 700-line guideline limit. Consider splitting routes into modules (auth_router, matches_router, admin_router) before adding more features.",
+    "In admin_set_result (server.py:400-413), recomputing total_points inside the per-prediction loop runs N aggregation queries for the same user when multiple predictions exist for the same user on the same match (currently impossible due to unique index, so functionally fine). Minor inefficiency only.",
+    "matches_seed.json contains 'time' as a naive datetime string ('2026-06-11 15:00:00'). The code defensively re-stamps tz to UTC, but ISO-8601 with 'Z' suffix would be cleaner and self-documenting.",
+    "/api/auth/forgot-password returns the reset_token directly in the JSON response (server.py:207). This is fine for demo/MVP but must be removed before production (token should only be emailed).",
+    "Awards lock uses 'first match by match_no' (server.py:295). If FIFA reschedules and an earlier kickoff time gets assigned a higher match_no, the lock would be incorrect. Recommend ordering by 'time' instead.",
+    "CORS uses allow_origin_regex='.*' with allow_credentials=True (server.py:466). Works for preview but should be tightened to an explicit allowlist for production."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin: admin@worldcup.com / Admin@2026 ; new users created via /api/auth/register with TEST_ email prefix",
+  "seed_data_creation": "Tests create disposable users with TEST_ email prefix; scoring tests use match #50; awards scoring test creates an isolated user.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Server clock is in June 2026 (during the tournament). Match #1 kickoff 2026-06-11 15:00 UTC, Match #2 already locked at 00:00 UTC. Use match numbers >= 50 for prediction tests to ensure they remain unlocked. After admin/matches/{n}/result is called, that match's predictions become 'scored=true' and user total_points equals (sum of scored prediction points) + award points. Award winners scoring overwrites user.total_points to (match_total + award_pts) per user; this is correct given the seeded data but be aware if you add new users between calls.",
+  "rca of the issue": "No real bugs found. Two initial test failures (test_register_sets_cookie email casing and test_update_prediction_upsert on match #2) were test bugs - email is correctly lowercased by API and match #2 is correctly locked by the kickoff time. Tests were updated to use email.lower() comparison and future match numbers (80, 81) for prediction tests, plus a new test_prediction_locked_for_started_match positive test verifying the lock behavior."
+}
