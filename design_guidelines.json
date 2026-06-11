@@ -1,0 +1,112 @@
+{
+  "theme": "dark",
+  "archetype": "2_performance_pro",
+  "domain": "Sports, Football, Prediction Game",
+  "colors": {
+    "background": {
+      "base": "#0A0A0A",
+      "surface": "#141414",
+      "surface_hover": "#1C1C1C"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#A3A3A3",
+      "muted": "#737373"
+    },
+    "accents": {
+      "primary": "#007AFF",
+      "primary_hover": "#3395FF",
+      "secondary": "#FF3B30",
+      "success": "#34C759",
+      "warning": "#FF9500"
+    },
+    "borders": {
+      "default": "rgba(255, 255, 255, 0.1)",
+      "light": "rgba(255, 255, 255, 0.05)",
+      "focus": "#007AFF"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "Bebas Neue, sans-serif",
+      "body": "DM Sans, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "sizes": {
+      "h1": "text-5xl md:text-6xl lg:text-7xl tracking-tight leading-none",
+      "h2": "text-3xl md:text-4xl tracking-tight leading-none",
+      "h3": "text-xl md:text-2xl tracking-tight",
+      "h4": "text-lg md:text-xl font-bold",
+      "body": "text-base leading-relaxed tracking-wide",
+      "small": "text-sm",
+      "overline": "text-xs uppercase tracking-[0.2em] font-bold"
+    }
+  },
+  "spacing_and_layout": {
+    "general": "Generous spacing. p-6 or p-8 inside cards. Containers with borders MUST have padding to avoid collision.",
+    "grid_modes": {
+      "marketing": "Grid cols 1 md:cols-8 lg:cols-12 gap-8 to gap-12 with asymmetric spanning (Tetris Grid).",
+      "dashboard": "Grid cols 1 md:cols-3 lg:cols-4 gap-4 to gap-6. Every pixel utilized, h-full on children (Control Room Grid). Applies to Fixtures, Leaderboards, and Profile."
+    },
+    "alignment": "Optical alignment. Left-align dense data. Center hero text only if it improves visual rhythm.",
+    "container_padding": "px-4 sm:px-6 lg:px-8",
+    "hero_overlay": "bg-black/50 to bg-black/70. For images where details matter, use gradient overlays: bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/60 to-transparent."
+  },
+  "surface_styles": {
+    "cards": "Flat background (#141414), 1px solid border (rgba(255,255,255,0.1)), no shadow. Avoid excessive rounded corners (max rounded-md).",
+    "header": "Crystal Glass variant: bg-[#0A0A0A]/60 backdrop-blur-xl border-b border-white/10. Must be sticky with z-50.",
+    "buttons": "Primary: bg-[#007AFF] text-white hover:bg-[#3395FF] border border-transparent. Secondary: bg-transparent border border-white/20 hover:border-white text-white. Use clear data-testid attributes.",
+    "inputs": "bg-[#0A0A0A] border border-white/20 text-white focus:border-[#007AFF] focus:ring-1 focus:ring-[#007AFF]. No rounded-full inputs, stick to sharp or slightly rounded corners.",
+    "tables": "Accessible data tables. border-collapse. Items have border-b border-white/10. Highlight row on hover with bg-[#1C1C1C]."
+  },
+  "motion_and_interactions": {
+    "hover_states": "All interactives must explicitly set hover colors. E.g., hover:text-white, hover:bg-[#1C1C1C].",
+    "focus_states": "High contrast focus rings. focus:ring-2 focus:ring-[#007AFF] focus:outline-none.",
+    "transitions": "transition-all duration-200 ease-in-out for buttons, cards, inputs."
+  },
+  "icons": {
+    "library": "@phosphor-icons/react",
+    "instructions": "yarn add @phosphor-icons/react"
+  },
+  "components": {
+    "instructions_to_main_agent": [
+      "IMPLEMENTATION CRITICAL: You must write React functional components (.js/.jsx) with Tailwind CSS classes as defined here.",
+      "HERO SECTION: Use pure HTML/Tailwind for creative overlapping. Display 'World Cup Predictor 2026', tournament countdown, and large CTA. Use 'dark stadium background' image provided.",
+      "FIXTURES/MATCHES: Dashboard 'Control Room' grid. Cards with team flags, scores, date/time, and a 'Predict' CTA button. Add filtering by group/stage/date.",
+      "PREDICTION FORM: Must include input fields for Team A score, Team B score, Winner selection, and MOTM (Man of the Match) as TEXT INPUT.",
+      "VIEW SQUAD LINK: On matches and awards prediction pages, display a highly visible hyperlink 'View Squad' pointing to https://fdp.fifa.org/assetspublic/ce281/pdf/SquadLists-English.pdf. Style it as an overline or text-sm primary link with an external link icon.",
+      "AWARDS PREDICTION: 4 categories (Golden Boot, Golden Glove, Player of the Tournament, Fair Play). MUST use text input (not dropdown) for player/team names.",
+      "LEADERBOARD: Table component with filters (global/country/weekly). Show rank, avatar/flag, points, accuracy%.",
+      "TEAMS & STADIUMS: Image grids. Teams (48 teams) with flag cards. Stadiums (16 venues) with stadium image, capacity, matches hosted.",
+      "PROFILE & ADMIN: Standard Shadcn customized dashboard layout. Sidebar navigation.",
+      "AUTH: Email/password authentication via Shadcn Form. Include country flag selection during registration.",
+      "TESTING: Add data-testid attributes to ALL buttons, inputs, links, and forms (e.g., data-testid='predict-match-button', data-testid='motm-input').",
+      "SHADCN UI: Do not use native HTML elements for forms/dropdowns. Use customized Shadcn elements with dark mode palette.",
+      "NO MOCK DATA PLACEHOLDERS IN UI: Even if mock data is used for rendering, it should look authentic and not say 'Mock' or 'Test'."
+    ]
+  },
+  "media": {
+    "image_urls": [
+      {
+        "url": "https://images.unsplash.com/photo-1599158150601-1417ebbaafdd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwxfHxkYXJrJTIwZm9vdGJhbGwlMjBzdGFkaXVtfGVufDB8fHx8MTc4MTE0ODQyOXww&ixlib=rb-4.1.0&q=85",
+        "description": "Dark stadium lit from inside with fans. Perfect for Hero background.",
+        "category": "hero_background"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1557174949-3b1f5b2e8fac?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHw0fHxkYXJrJTIwZm9vdGJhbGwlMjBzdGFkaXVtfGVufDB8fHx8MTc4MTE0ODQyOXww&ixlib=rb-4.1.0&q=85",
+        "description": "Aerial photo of football field.",
+        "category": "stadium_showcase"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1600463405632-943a7b68c16a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwzfHxzb2NjZXIlMjBiYWxsJTIwZGFyayUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzgxMTQ4NDI4fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Soccer ball on dark background.",
+        "category": "generic_football_accent"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1709431511180-f941cbd6db7d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzN8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBmb290YmFsbCUyMHN0YWRpdW0lMjBleHRlcmlvcnxlbnwwfHx8fDE3ODExNDg0Mjh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "View of a football stadium from the field.",
+        "category": "stadium_detail"
+      }
+    ]
+  }
+}
