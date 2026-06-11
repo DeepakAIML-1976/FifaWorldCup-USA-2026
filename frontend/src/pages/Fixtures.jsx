@@ -8,14 +8,20 @@ import ShareButtons from "@/components/ShareButtons";
 
 const STAGES = ["All", "Group Stage", "Round of 32", "Round of 16", "Quarter Final", "Semi Final", "Third Place", "Final"];
 
-function formatDateTime(s) {
-  if (!s) return "TBA";
+function formatIST(s) {
+  if (!s) return "";
   try {
     const d = new Date(s);
-    const ist = d.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true });
-    const et = d.toLocaleString("en-US", { timeZone: "America/New_York", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
-    return { ist, et };
-  } catch { return { ist: s, et: "" }; }
+    return d.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true });
+  } catch { return s; }
+}
+
+function formatET(s) {
+  if (!s) return "";
+  try {
+    const d = new Date(s);
+    return d.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true });
+  } catch { return s; }
 }
 
 function formatLockTime(s) {
@@ -140,16 +146,12 @@ function MatchCard({ m, teams, pred, authed, onSaved }) {
         <span className="text-right">
           {m.tba ? (
             <span className="text-[#FF9500]" data-testid={`tba-${m.match_no}`}>Kickoff TBA</span>
-          ) : (() => {
-            const t = formatDateTime(m.time);
-            if (typeof t === "string") return t;
-            return (
-              <span className="flex flex-col items-end leading-tight">
-                <span className="text-white/70">{t.ist} IST</span>
-                <span className="text-[9px] text-white/30">{t.et} ET</span>
-              </span>
-            );
-          })()}
+          ) : (
+            <span className="flex flex-col items-end leading-tight">
+              <span className="text-white/70">{formatIST(m.time)} IST</span>
+              <span className="text-[9px] text-white/40">{formatET(m.time_et_utc || m.time)} ET</span>
+            </span>
+          )}
         </span>
       </div>
       <div className="px-5 py-5">
