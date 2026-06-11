@@ -12,10 +12,19 @@ function formatDateTime(s) {
   if (!s) return "TBA";
   try {
     const d = new Date(s);
-    const local = d.toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-    const et = d.toLocaleString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
-    return { local, et };
-  } catch { return { local: s, et: "" }; }
+    const ist = d.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true });
+    const et = d.toLocaleString("en-US", { timeZone: "America/New_York", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
+    return { ist, et };
+  } catch { return { ist: s, et: "" }; }
+}
+
+function formatLockTime(s) {
+  if (!s) return "";
+  try {
+    const lockMs = new Date(s).getTime() - 60 * 60 * 1000;
+    const lock = new Date(lockMs);
+    return lock.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true });
+  } catch { return ""; }
 }
 
 function TeamFlagCDN({ name }) {
@@ -134,8 +143,8 @@ function MatchCard({ m, teams, pred, authed, onSaved }) {
             if (typeof t === "string") return t;
             return (
               <span className="flex flex-col items-end leading-tight">
-                <span className="text-white/60">{t.et} ET</span>
-                <span className="text-[9px] text-white/30">{t.local} local</span>
+                <span className="text-white/70">{t.ist} IST</span>
+                <span className="text-[9px] text-white/30">{t.et} ET</span>
               </span>
             );
           })()}
@@ -184,8 +193,13 @@ function MatchCard({ m, teams, pred, authed, onSaved }) {
           </button>
         )}
         {locked && (
-          <div className="mt-4 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.2em] text-white/40">
-            <Lock className="h-3 w-3" /> Locked
+          <div className="mt-4 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.2em] text-white/40" data-testid={`locked-${m.match_no}`}>
+            <Lock className="h-3 w-3" /> Locked (kickoff &lt; 1h)
+          </div>
+        )}
+        {!locked && lockAt && (
+          <div className="mt-3 text-[10px] uppercase tracking-[0.2em] text-white/30" data-testid={`lock-info-${m.match_no}`}>
+            Locks {formatLockTime(m.time)} IST
           </div>
         )}
 
